@@ -1,26 +1,23 @@
-/**
- * 网易云音乐 热门日榜模拟播放脚本（eapi 接口）
- * by @GitJuZi
- */
+console.log("🎵 播放脚本启动（Loon专用）");
 
-const cookie = $persistentStore.read("Netease_Musician_Cookie");
-const userAgent = $persistentStore.read("Netease_Musician_UserAgent");
+const cookie = $persistentStore.read("Netease_Musician_Cookie") || "";
+const userAgent = $persistentStore.read("Netease_Musician_UserAgent") || "";
 
-console.log("🎵 [播放脚本启动]");
-console.log("Cookie:", cookie ? "✅" : "❌");
-console.log("User-Agent:", userAgent ? "✅" : "❌");
+console.log("读取 Cookie:", cookie ? "✅" : "❌ 空");
+console.log("读取 UA:", userAgent ? "✅" : "❌ 空");
 
 if (!cookie || !userAgent) {
-  $notification.post("网易云播放脚本", "❌ 缺少 Cookie 或 User-Agent", "请先抓取后再运行");
+  $notification.post("网易云播放脚本", "❌ 缺少 Cookie 或 User-Agent", "请先运行抓取脚本");
   $done();
+  return;
 }
 
-// 日榜歌单 ID：3778678
+// 日榜歌单ID
 const playlistId = "3778678";
 
-// eapi 请求接口
-const apiUrl = "https://interface3.music.163.com/eapi/v6/playlist/detail";
-const realUrl = `${apiUrl}?id=${playlistId}&n=1000`;
+// 网易云 eapi 详情接口
+const apiUrl = `https://interface3.music.163.com/eapi/v6/playlist/detail`;
+
 const headers = {
   "Cookie": cookie,
   "User-Agent": userAgent,
@@ -29,46 +26,53 @@ const headers = {
   "X-Real-IP": "118.88.88.88"
 };
 
-const request = {
-  url: realUrl,
-  method: "POST",
-  headers: headers,
-  body: `params=%7B%22id%22%3A${playlistId}%2C%22n%22%3A1000%2C%22s%22%3A8%7D`
-};
+const body = `params=%7B%22id%22%3A${playlistId}%2C%22n%22%3A1000%2C%22s%22%3A8%7D`;
 
-$httpClient.post(request, function (error, response, data) {
-  if (error) {
-    console.log("❌ 请求失败：" + error);
-    $done();
-    return;
+$httpClient.post(
+  {
+    url: apiUrl,
+    headers: headers,
+    body: body
+  },
+  (error, response, data) => {
+    if (error) {
+      console.log("❌ 请求失败：" + error);
+      $done();
+      return;
+    }
+    try {
+      const res = JSON.parse(data);
+      if (!res.playlist || !res.playlist.trackIds) {
+        console.log("❌ 返回数据缺少 playlist.trackIds");
+        console.log("返回内容：" + data);
+        $notification.post("网易云播放脚本", "❌ 歌单数据错误", "请确认Cookie有效");
+        $done();
+        return;
+      }
+      const trackIds = res.playlist.trackIds.slice(0, 30);
+      console.log(`📀 成功获取 ${trackIds.length} 首歌曲，开始模拟播放...`);
+      playTracks(trackIds, 0);
+    } catch (e) {
+      console.log("❌ JSON解析失败：" + e);
+      console.log("返回内容：" + data);
+      $notification.post("网易云播放脚本", "❌ 解析错误", "请确认Cookie有效");
+      $done();
+    }
   }
-
-  try {
-    const res = JSON.parse(data);
-    const trackIds = res.playlist.trackIds.slice(0, 30);
-
-    console.log(`📀 获取成功，共 ${trackIds.length} 首歌`);
-    playTracks(trackIds, 0);
-  } catch (e) {
-    console.log("❌ JSON 解析失败：" + e);
-    console.log("返回内容：", data);
-    $notification.post("网易云播放脚本", "❌ 歌单数据解析失败", "可能是 Cookie 无效或接口变更");
-    $done();
-  }
-});
+);
 
 function playTracks(trackIds, index) {
   if (index >= trackIds.length) {
-    console.log("✅ 所有歌曲播放完毕");
-    $notification.post("网易云播放", "✅ 播放完成", `共 ${trackIds.length} 首歌`);
+    console.log("✅ 模拟播放完成");
+    $notification.post("网易云播放脚本", "✅ 播放完成", `共播放${trackIds.length}首歌曲`);
     $done();
     return;
   }
-
   const id = trackIds[index].id;
-  console.log(`▶️ 播放第 ${index + 1} 首歌曲，ID: ${id}`);
+  console.log(`▶️ 正在播放第 ${index + 1} 首，歌曲ID：${id}`);
 
+  // 模拟播放3秒
   setTimeout(() => {
     playTracks(trackIds, index + 1);
-  }, 3000); // 每首歌模拟播放 3 秒
+  }, 3000);
 }
