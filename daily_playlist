@@ -1,25 +1,24 @@
 /**
- * @fileoverview 网易云音乐 - 播放日榜歌曲（默认前30首，每首3分钟）
- * 可用于刷听歌记录 / 听歌任务
- * 适用于 Loon / Surge / Quantumult X
- * 
- * 使用前需配合 cookie.js 抓取 Cookie
+ * @fileoverview 网易云音乐 - 播放日榜歌曲（支持自定义Cookie键）
+ * 适配你现有Cookie存储方式（Netease_Musician_Cookie 和 Netease_Musician_UserAgent）
  */
 
-const playlistId = 3778678; // 日榜ID，默认热歌榜，可改成其他榜单
+const playlistId = 3778678; // 日榜ID，默认热歌榜
 const playCount = 30;       // 播放前多少首
-const waitTime = 180000;    // 每首等待时间（毫秒），默认3分钟
+const waitTime = 180000;    // 每首等待时间，单位毫秒
 
-const cookie = $persistentStore.read("NeteaseMusicCookie");
-if (!cookie) {
-  console.log("❌ 未检测到 Cookie，请先抓取");
+const cookie = $persistentStore.read("Netease_Musician_Cookie");
+const userAgent = $persistentStore.read("Netease_Musician_UserAgent");
+
+if (!cookie || !userAgent) {
+  console.log("❌ 未检测到 Cookie 或 User-Agent，请先抓取");
   $done();
 }
 
 const headers = {
   "Cookie": cookie,
+  "User-Agent": userAgent,
   "Content-Type": "application/x-www-form-urlencoded",
-  "User-Agent": "NeteaseMusic/8.10.05",
 };
 
 const request = {
