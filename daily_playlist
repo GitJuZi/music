@@ -1,21 +1,21 @@
-console.log("🎵 播放脚本启动（Loon专用）");
+console.log("🎵 播放脚本启动（写死 Cookie + UA 测试）");
 
-const cookie = $persistentStore.read("Netease_Musician_Cookie") || "";
-const userAgent = $persistentStore.read("Netease_Musician_UserAgent") || "";
+// 请把这里替换成你的完整 Cookie 字符串（复制你的 Netease_Musician_Cookie 内容）
+const cookie = `ntes_kaola_ad=1; EVNSM=1.0.0; NMCID=vulbjn.1749353184000.01.3; NMDI=Q1NKTQcBDAAG8RKQZ6kS6r8cJhNoAAAACJkYL5j%2BHkaoDGN9ILilGAPVyadEidon5urHIaoJBHXdDDEVbnWlza6u9bI7V3%2FjqCrkDdpk3ttKaTD%2FdlTvwELbGG8ifk82pangiWpnkVEEV4PFuwL%2F1zK25o72xYxVKCmF%2Fygmx0A%3D; ... 省略 ...`;
+
+// 请把这里替换成你的 User-Agent 字符串（复制你的 Netease_Musician_UserAgent 内容）
+const userAgent = `NeteaseMusic 9.3.15/6032 (iPhone; iOS 16.6.1; zh_CN)`;
 
 console.log("读取 Cookie:", cookie ? "✅" : "❌ 空");
 console.log("读取 UA:", userAgent ? "✅" : "❌ 空");
 
 if (!cookie || !userAgent) {
-  $notification.post("网易云播放脚本", "❌ 缺少 Cookie 或 User-Agent", "请先运行抓取脚本");
+  $notification.post("网易云播放脚本", "❌ 缺少 Cookie 或 User-Agent", "请补全写死参数");
   $done();
   return;
 }
 
-// 日榜歌单ID
-const playlistId = "3778678";
-
-// 网易云 eapi 详情接口
+const playlistId = "3778678";  // 网易云日榜歌单ID
 const apiUrl = `https://interface3.music.163.com/eapi/v6/playlist/detail`;
 
 const headers = {
@@ -26,6 +26,7 @@ const headers = {
   "X-Real-IP": "118.88.88.88"
 };
 
+// eapi接口请求体参数，urlencode后的字符串
 const body = `params=%7B%22id%22%3A${playlistId}%2C%22n%22%3A1000%2C%22s%22%3A8%7D`;
 
 $httpClient.post(
@@ -71,7 +72,6 @@ function playTracks(trackIds, index) {
   const id = trackIds[index].id;
   console.log(`▶️ 正在播放第 ${index + 1} 首，歌曲ID：${id}`);
 
-  // 模拟播放3秒
   setTimeout(() => {
     playTracks(trackIds, index + 1);
   }, 3000);
