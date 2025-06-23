@@ -1,17 +1,19 @@
 /**
- * @fileoverview 网易云音乐 - 播放日榜歌曲（支持自定义Cookie键）
- * 适配你现有Cookie存储方式（Netease_Musician_Cookie 和 Netease_Musician_UserAgent）
+ * 网易云音乐 日榜播放脚本（Loon 版）
+ * Cookie 键名：Netease_Musician_Cookie
+ * UserAgent 键名：Netease_Musician_UserAgent
+ * by @GitJuZi
  */
-
-const playlistId = 3778678; // 日榜ID，默认热歌榜
-const playCount = 30;       // 播放前多少首
-const waitTime = 180000;    // 每首等待时间，单位毫秒
 
 const cookie = $persistentStore.read("Netease_Musician_Cookie");
 const userAgent = $persistentStore.read("Netease_Musician_UserAgent");
 
+console.log("🎵 [播放脚本启动]");
+console.log("读取到的 Cookie:", cookie ? "✅ 有" : "❌ 无");
+console.log("读取到的 UA:", userAgent ? "✅ 有" : "❌ 无");
+
 if (!cookie || !userAgent) {
-  console.log("❌ 未检测到 Cookie 或 User-Agent，请先抓取");
+  $notification.post("网易云播放脚本", "⚠️ 缺少 Cookie 或 UA", "请先抓取后再运行");
   $done();
 }
 
@@ -21,6 +23,8 @@ const headers = {
   "Content-Type": "application/x-www-form-urlencoded",
 };
 
+// 获取热歌榜播放列表
+const playlistId = 3778678; // 热歌日榜 ID
 const request = {
   url: `https://music.163.com/weapi/v3/playlist/detail`,
   method: "POST",
@@ -30,54 +34,49 @@ const request = {
 
 $httpClient.post(request, function (error, response, data) {
   if (error) {
-    console.log("❌ 请求失败：" + error);
+    console.log("❌ 请求播放列表失败：" + error);
     $done();
     return;
   }
 
   try {
     const res = JSON.parse(data);
-    const tracks = res.playlist.trackIds.slice(0, playCount);
+    const trackIds = res.playlist.trackIds.slice(0, 30);
 
-    console.log(`🎵 即将模拟播放 ${tracks.length} 首歌曲`);
-
-    playTracks(tracks, 0);
+    console.log(`📀 共获取到 ${trackIds.length} 首歌，将模拟播放...`);
+    playTracks(trackIds, 0);
   } catch (e) {
-    console.log("❌ 解析失败：" + e);
+    console.log("❌ 播放列表解析失败：" + e);
     $done();
   }
 });
 
+// 模拟播放
 function playTracks(trackIds, index) {
   if (index >= trackIds.length) {
-    console.log("✅ 播放完成");
+    console.log("✅ 所有歌曲播放完毕");
+    $notification.post("网易云播放脚本", "✅ 已模拟播放完成", `共 ${trackIds.length} 首`);
     $done();
     return;
   }
 
   const id = trackIds[index].id;
-  const url = `https://music.163.com/weapi/song/enhance/player/url/v1?csrf_token=`;
-
-  const body = `params=${encodeURIComponent(getSongParams(id))}&encSecKey=${getEncSecKey()}`;
-
-  $httpClient.post({
-    url: url,
+  const playReq = {
+    url: `https://music.163.com/weapi/song/enhance/player/url/v1?csrf_token=`,
+    method: "POST",
     headers: headers,
-    body: body
-  }, function (err, resp, data) {
-    if (!err) {
-      console.log(`▶️ 正在模拟播放第 ${index + 1} 首：${id}`);
-    } else {
-      console.log(`⚠️ 播放第 ${index + 1} 首失败`);
-    }
+    body: `params=${encodeURIComponent(getSongParams(id))}&encSecKey=${getEncSecKey()}`
+  };
 
+  $httpClient.post(playReq, function (err, resp, data) {
+    console.log(`▶️ 播放第 ${index + 1} 首，歌曲 ID: ${id}`);
     setTimeout(() => {
       playTracks(trackIds, index + 1);
-    }, waitTime);
+    }, 3000); // 播放间隔可调（默认每首 3 秒）
   });
 }
 
-// 以下是参数加密函数（伪造，仅用于形式结构）
+// 加密参数（模拟结构）
 function getParams(id) {
   return JSON.stringify({
     id: id,
@@ -96,6 +95,5 @@ function getSongParams(id) {
 }
 
 function getEncSecKey() {
-  // 实际使用中无需真加密，网易云允许空字段伪装
   return "fake_encSecKey";
 }
