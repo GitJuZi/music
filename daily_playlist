@@ -1,10 +1,11 @@
 console.log("🎵 播放脚本启动（写死 Cookie + UA 测试）");
 
 // 请把这里替换成你的完整 Cookie 字符串（复制你的 Netease_Musician_Cookie 内容）
-const cookie = `ntes_kaola_ad=1; EVNSM=1.0.0; NMCID=vulbjn.1749353184000.01.3; NMDI=Q1NKTQcBDAAG8RKQZ6kS6r8cJhNoAAAACJkYL5j%2BHkaoDGN9ILilGAPVyadEidon5urHIaoJBHXdDDEVbnWlza6u9bI7V3%2FjqCrkDdpk3ttKaTD%2FdlTvwELbGG8ifk82pangiWpnkVEEV4PFuwL%2F1zK25o72xYxVKCmF%2Fygmx0A%3D; ... 省略 ...`;
+const cookie = "ntes_kaola_ad=1; EVNSM=1.0.0; NMCID=vulbjn.1749353184000.01.3; NMDI=Q1NKTQcBDAAG8RKQZ6kS6r8cJhNoAAAACJkYL5j%2BHkaoDGN9ILilGAPVyadEidon5urHIaoJBHXdDDEVbnWlza6u9bI7V3%2FjqCrkDdpk3ttKaTD%2FdlTvwELbGG8ifk82pangiWpnkVEEV4PFuwL%2F1zK25o72xYxVKCmF%2Fygmx0A%3D; ... 省略 ...`;
+";
 
 // 请把这里替换成你的 User-Agent 字符串（复制你的 Netease_Musician_UserAgent 内容）
-const userAgent = `NeteaseMusic 9.3.15/6032 (iPhone; iOS 16.6.1; zh_CN)`;
+const userAgent = "NeteaseMusic 9.3.15/6032 (iPhone; iOS 16.6.1; zh_CN)";
 
 console.log("读取 Cookie:", cookie ? "✅" : "❌ 空");
 console.log("读取 UA:", userAgent ? "✅" : "❌ 空");
