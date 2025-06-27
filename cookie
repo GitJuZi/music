@@ -4,11 +4,6 @@ if (typeof $request !== "undefined") {
   // 获取 Cookie 和 User-Agent
   const cookie = $request.headers["Cookie"] || $request.headers["cookie"];
   const ua = $request.headers["User-Agent"] || $request.headers["user-agent"];
-
-  // 调试输出，查看是否正确获取 Cookie 和 User-Agent
-  console.log("请求头中获取到的Cookie:", cookie);   // 这会打印获取到的 Cookie
-  console.log("请求头中获取到的User-Agent:", ua);   // 这会打印获取到的 User-Agent
-
   if (cookie && ua) {
     // 保存 Cookie 和 User-Agent
     $.setdata(cookie, "Netease_Musician_Cookie");
